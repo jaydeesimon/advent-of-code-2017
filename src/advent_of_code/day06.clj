@@ -35,7 +35,7 @@
          memory-banks-vec [memory-banks]]
     (let [memory-banks (distribute-cycle memory-banks most-blocks)]
       (if ((set memory-banks-vec) memory-banks)
-        memory-banks-vec
+        (conj memory-banks-vec memory-banks)
         (recur
           memory-banks
           (conj memory-banks-vec memory-banks))))))
@@ -47,8 +47,26 @@
 
   (distribute-cycle [1 3 4 1] most-blocks)
 
+  (take 10 (distribute-cycles memory-banks))
+
   ;; part one
   (count (cycles-until-repeat memory-banks))
+
+  ;; repeat memory bank
+  ;; got this by running cycles-until-repeat and
+  ;; looked at the last element
+  [0 14 13 12 11 10 8 8 6 6 5 3 3 2 1 10]
+
+  ;; part two
+  (->> (cycles-until-repeat memory-banks)
+       (map vector (range))
+       (filter (fn [[idx memory-bank]]
+                 (= memory-bank [0 14 13 12 11 10 8 8 6 6 5 3 3 2 1 10])))
+       (map (fn [[idx _]]
+              idx))
+       (reverse)
+       (apply -))
+
 
 
   )
