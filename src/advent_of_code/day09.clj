@@ -64,6 +64,13 @@
         (str/replace s #"\}" "]")
         (str/replace s #"," "")))
 
+(defn reduce-stream-with-garbage [stream]
+  (as-> stream s
+        (delete-canceled-chars s)
+        (init-replace-garbage s)
+        (apply str s)
+        (re-seq #"(<[G|<]*>)" s)))
+
 (defn count-groups [form]
   (loop [q (queue [[1 form]])
          traversal []]
@@ -84,7 +91,12 @@
   ;; Part 1!!
   (reduce + (map first (count-groups form)))
 
-
+  ;; Part 2
+  (->> (reduce-stream-with-garbage input)
+       (map first)
+       (map (comp #(- % 2) count))
+       (reduce +))
+  
   )
 
 
