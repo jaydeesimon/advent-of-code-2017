@@ -13,9 +13,24 @@
         joined (concat (reverse section) (flatten remainder))]
     (rotate-right joined start)))
 
+(defn hash-knot [coll lengths]
+  (loop [coll coll
+         curr-pos 0
+         skip-size 0
+         lengths lengths]
+    (let [[length & rst] lengths]
+      (if (nil? length)
+        coll
+        (let [curr-pos-normalized (mod curr-pos (count coll))]
+          (recur
+            (hash-step coll curr-pos-normalized (+ curr-pos-normalized length))
+            (+ curr-pos length skip-size)
+            (inc skip-size)
+            rst))))))
+
 (comment
 
-  
+
 
 
 
