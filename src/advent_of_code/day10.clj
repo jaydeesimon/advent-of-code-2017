@@ -12,12 +12,14 @@
 (defn rotate-right [coll n]
   (rotate-left coll (- (count coll) n)))
 
-;; BREAKS WHEN START IS EQUAL TO END
+
 (defn hash-step [coll start end]
-  (let [rotated (rotate-left coll start)
-        [section & remainder] (partition-all (- end start) rotated)
-        joined (concat (reverse section) (flatten remainder))]
-    (rotate-right joined start)))
+  (if (= start end)
+    coll
+    (let [rotated (rotate-left coll start)
+          [section & remainder] (partition-all (- end start) rotated)
+          joined (concat (reverse section) (flatten remainder))]
+      (rotate-right joined start))))
 
 (defn hash-knot [coll lengths]
   (loop [coll coll
@@ -36,11 +38,11 @@
 
 (comment
 
-  ;; TODO: Breaks when length is zero
   ;; Part 1
-  (hash-knot (range 256) lengths)
+  (let [[frst scnd] (hash-knot (range 256) lengths)]
+    (* frst scnd))
 
-  (hash-knot (range 256) [300 300 300 300 254 2 88 32 137])
+  
 
 
 
