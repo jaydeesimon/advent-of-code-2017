@@ -28,15 +28,22 @@
        (partition 2 1 coords)))
 
 (defn follow-path [start path]
-  (reduce (fn [curr-pos curr-direction]
+  (reduce (fn [positions curr-direction]
             (let [curr-coord (get directions curr-direction)]
-              (mapv + curr-pos curr-coord)))
-          start
+              (conj positions (mapv + (last positions) curr-coord))))
+          [start]
           path))
 
 (comment
 
   ;; Part 1
-  (cube-distance [0 0 0] (follow-path [0 0 0] path))
+  (let [start [0 0 0]
+        final-pos (last (follow-path start path))]
+    (cube-distance start final-pos))
+
+  ;; Part 2
+  (let [start [0 0 0]]
+    (->> (map cube-distance (repeat start) (follow-path start path))
+         (apply max)))
 
   )
