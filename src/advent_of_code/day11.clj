@@ -22,6 +22,7 @@
 (def path (->> (str/split (slurp (io/resource "day-11-input.txt")) #",")
                (map keyword)))
 
+;; used this to make sure I had the direction offsets right
 (defn units [coords]
   (map (fn [[start end]]
          (mapv - end start))
