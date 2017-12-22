@@ -49,4 +49,15 @@
   ;; Part 1
   (count (traverse-pipes edges "0"))
 
+  ;; Part 2
+  (count
+    (let [edges edges]
+      (loop [programs (set (map str (range 2000)))
+             groups []]
+        (if (empty? programs)
+          groups
+          (let [group (traverse-pipes edges (first programs))]
+            (recur (set/difference programs (set group))
+                   (conj groups group)))))))
+
   )
