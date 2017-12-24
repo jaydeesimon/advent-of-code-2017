@@ -51,9 +51,7 @@
       state
       :packet-pos
       (fn [packet-pos]
-        (if (not (idx-in-bounds? (inc last-pos) (inc packet-pos)))
-          last-pos
-          (inc packet-pos))))))
+        (inc packet-pos)))))
 
 (defn tick-picosecond [state]
   (update state :picosecond inc))
@@ -69,6 +67,13 @@
         initial-state (init-state depth-ranges)
         max-layer (apply max (keys depth-ranges))]
     (take (inc max-layer) (iterate tick initial-state))))
+
+(defn cross-firewall* [initial-state]
+  (let [initial-state (assoc initial-state :packet-pos 0)
+        depth-ranges (get initial-state :depth-ranges)
+        last-pos (apply max (keys depth-ranges))]
+    (take-while #(< (get % :packet-pos) (inc last-pos))
+                (iterate tick initial-state))))
 
 (defn find-caught-states [states]
   (filter (fn [{:keys [packet-pos security-scanners]}]
@@ -88,11 +93,30 @@
       (find-caught-states)
       (severity)))
 
+(defn security-scanners [state]
+  (-> state
+      (tick-security-scanners)
+      (tick-picosecond)))
+
+(defn security-scanner-states-seq [initial-state]
+  (iterate security-scanners initial-state))
+
 
 (comment
 
   ;; Part 1
   (whole-trip-severity input)
+
+  ;; Part 2
+  ;; Brute-forced this one. Don't know how long it took to get the answer, cause I just let it run
+  ;; over-night but for me, you delay 3,834,136 picoseconds and then you're home free.
+  (let [security-scanner-state-seq* (security-scanner-states-seq (init-state (depth-ranges input)))]
+    (loop [[initial-state & rst] security-scanner-state-seq*]
+      (let [caught? (seq (find-caught-states (cross-firewall* initial-state)))]
+        (if (not caught?)
+          initial-state
+          (recur rst)))))
+
 
 
   )
