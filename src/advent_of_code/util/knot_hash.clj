@@ -1,19 +1,20 @@
-(ns advent-of-code.day10
-  (:require [clojure.string :as str]))
+(ns advent-of-code.util.knot-hash)
 
-(def input "34,88,2,222,254,93,150,0,199,255,39,32,137,136,1,167")
+;; The names are bad but I copied this straight from Day 10
 
-(def lengths (->> (str/split input #",")
-                  (map #(Integer/parseInt %))))
+(defn- str->ascii [s]
+  (vec (.getBytes s "US-ASCII")))
 
-(defn rotate-left [coll n]
+(defn- str->lengths [s]
+  (vec (concat (str->ascii s) [17 31 73 47 23])))
+
+(defn- rotate-left [coll n]
   (take (count coll) (drop n (cycle coll))))
 
-(defn rotate-right [coll n]
+(defn- rotate-right [coll n]
   (rotate-left coll (- (count coll) n)))
 
-
-(defn hash-step [coll start end]
+(defn- hash-step [coll start end]
   (if (= start end)
     coll
     (let [rotated (rotate-left coll start)
@@ -21,28 +22,7 @@
           joined (concat (reverse section) (flatten remainder))]
       (rotate-right joined start))))
 
-(defn knot-hash [coll lengths]
-  (loop [coll coll
-         curr-pos 0
-         skip-size 0
-         lengths lengths]
-    (let [[length & rst] lengths]
-      (if (nil? length)
-        coll
-        (let [curr-pos-normalized (mod curr-pos (count coll))]
-          (recur
-            (hash-step coll curr-pos-normalized (+ curr-pos-normalized length))
-            (+ curr-pos length skip-size)
-            (inc skip-size)
-            rst))))))
-
-(defn str->ascii [s]
-  (vec (.getBytes s "US-ASCII")))
-
-(defn str->lengths [s]
-  (vec (concat (str->ascii s) [17 31 73 47 23])))
-
-(defn knot-hash-part2 [{:keys [coll curr-pos skip-size]} lengths]
+(defn- knot-hash-part2 [{:keys [coll curr-pos skip-size]} lengths]
   (loop [coll coll
          curr-pos curr-pos
          skip-size skip-size
@@ -59,23 +39,15 @@
             (inc skip-size)
             rst))))))
 
-(defn part-two [coll lengths n]
+(defn- part-two [coll lengths n]
   (let [x {:coll coll :curr-pos 0 :skip-size 0}]
     (take (inc n) (iterate #(knot-hash-part2 % lengths) x))))
 
-(comment
-
-  ;; Part 1
-  (let [[frst scnd] (knot-hash (range 256) lengths)]
-    (* frst scnd))
-
-
-  ;; Part 2
+(defn knot-hash [input]
   (let [sparse-hash (:coll (last (part-two (range 256) (str->lengths input) 64)))]
     (->> (partition 16 sparse-hash)
          (map #(apply bit-xor %))
          (map #(format "%02x" %))
-         (apply str)))
+         (apply str))))
 
 
-  )
