@@ -57,6 +57,7 @@
 
 (comment
 
+  ;; Part 1
   (apply str
          (reduce (fn [program instruction]
                    ((instruction-fn instruction) program))
