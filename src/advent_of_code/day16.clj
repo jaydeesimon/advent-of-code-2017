@@ -53,7 +53,14 @@
     \s (spin-fn instruction)
     (throw (ex-info "" {:unknown instruction}))))
 
-(def instructions (str/split (slurp (io/resource "day-16-input.txt")) #","))
+(def dance-input (str/split (slurp (io/resource "day-16-input.txt")) #","))
+(def test-dance-input (str/split "s1,x3/4,pe/b" #","))
+
+(defn dance-fn [dance-input]
+  (reduce (fn [curr-f instruction]
+            (comp curr-f (instruction-fn instruction)))
+          identity
+          (reverse dance-input)))
 
 (comment
 
@@ -62,6 +69,35 @@
          (reduce (fn [program instruction]
                    ((instruction-fn instruction) program))
                  (vec "abcdefghijklmnop")
-                 instructions))
+                 dance-input))
+
+  ;; This is way too slow
+  (time
+    (let [dance-fn (dance-fn dance-input)
+          iterations 1000000000]
+      (last (take iterations (iterate dance-fn (vec "nlciboghjmfdapek"))))))
+
+  ;; But it repeats every 63 iterations
+  (let [dance-fn (dance-fn dance-input)]
+    (->> (map (fn [idx position]
+                [idx position])
+              (range)
+              (iterate dance-fn (vec "nlciboghjmfdapek")))
+         (filter (fn [[idx position]]
+                   (= position (vec "nlciboghjmfdapek"))))
+         (take 5)))
+
+  ;; So we can do
+  (mod 1000000000 63) ;; => 55
+
+
+  ;; Part 2
+  ;; Since it's zero-based, it'll actually be the 54th position
+  (let [dance-fn (dance-fn dance-input)]
+    (->> (map (fn [idx position]
+                [(mod idx 63) (apply str position)])
+              (range)
+              (iterate dance-fn (vec "nlciboghjmfdapek")))
+         (take 128)))
 
   )
