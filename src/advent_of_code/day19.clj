@@ -47,43 +47,56 @@
         next-coord (first next-coords)]
     [next-coord (mapv - next-coord coord)]))
 
+(defn travel-to-end [world]
+  (loop [coord (:start world)
+         path []
+         letters []
+         direction [1 0]]
+    (let [curr-tile-type (get-in world [:grid coord])
+          next-coord (mapv + coord direction)
+          next-tile-type (get-in world [:grid next-coord])]
+      (cond
+
+        (get-in world [:grid next-coord])
+        (recur next-coord
+               (conj path coord)
+               (if (letter? curr-tile-type)
+                 (conj letters curr-tile-type)
+                 letters)
+               direction)
+
+        (= \+ curr-tile-type)
+        (let [[next-coord new-direction] (find-new-direction world coord path)]
+          (if (nil? next-coord)
+            {:path    path
+             :letters letters}
+            (recur next-coord
+                   (conj path coord)
+                   letters
+                   new-direction)))
+
+        :else
+        {:path (conj path coord)
+         :letters (if (letter? curr-tile-type)
+                    (conj letters curr-tile-type)
+                    letters)}))))
 
 
 (comment
 
   ;; Part 1
-  (let [world (input->world (slurp (io/resource "day-19-input.txt")))]
-    (loop [coord (:start world)
-           path []
-           letters []
-           direction [1 0]]
-      (let [curr-tile-type (get-in world [:grid coord])
-            next-coord (mapv + coord direction)
-            next-tile-type (get-in world [:grid next-coord])]
-        (cond
+  (->> (slurp (io/resource "day-19-input.txt"))
+       (input->world)
+       (travel-to-end)
+       (:letters)
+       (apply str))
 
-          (get-in world [:grid next-coord])
-          (recur next-coord
-                 (conj path coord)
-                 (if (letter? curr-tile-type)
-                   (conj letters curr-tile-type)
-                   letters)
-                 direction)
+  ;; Part 2
+  (->> (slurp (io/resource "day-19-input.txt"))
+       (input->world)
+       (travel-to-end)
+       (:path)
+       (count))
 
-          (= \+ curr-tile-type)
-          (let [[next-coord new-direction] (find-new-direction world coord path)]
-            (if (nil? next-coord)
-              {:path    path
-               :letters letters}
-              (recur next-coord
-                     (conj path coord)
-                     letters
-                     new-direction)))
-
-          :else
-          {:path (conj path coord)
-           :letters (if (letter? curr-tile-type)
-                      (conj letters curr-tile-type)
-                      letters)}))))
 
   )
