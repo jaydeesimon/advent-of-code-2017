@@ -5,7 +5,7 @@
 (def input (slurp (io/resource "day-20-input.txt")))
 
 (defn parse-nums [nums]
-  (->> (str/split nums #"," )
+  (->> (str/split nums #",")
        (mapv #(Integer/parseInt %))))
 
 (defn parse-elem [elem]
@@ -15,8 +15,8 @@
 
 (defn parse-line [id line]
   (let [m (->> (str/split line #", ")
-             (map parse-elem)
-             (into {}))]
+               (map parse-elem)
+               (into {}))]
     (assoc m :id id)))
 
 (defn input->particles [input]
@@ -36,6 +36,20 @@
       (recur (mapv update-particle particles')
              (inc curr)))))
 
+(defn remove-collisions [particles]
+  (->> (group-by :p particles)
+       (filter (fn [[p particles]]
+                 (= (count particles) 1)))
+       (mapcat second)))
+
+(defn particle-positions-with-collisions [n particles]
+  (loop [particles' particles
+         curr 1]
+    (if (> curr n)
+      particles'
+      (recur (remove-collisions (mapv update-particle particles'))
+             (inc curr)))))
+
 (defn abs [x]
   (Math/abs x))
 
@@ -51,5 +65,10 @@
        (sort-by :distance-to-origin)
        (first)
        (:id))
+
+  ;; Part 2
+  (->> (input->particles input)
+       (particle-positions-with-collisions 1000)
+       (count))
 
   )
