@@ -69,7 +69,8 @@
 
   ;; Part 1
   (let [state (init-state input)]
-    (->> (take 10000 (iterate burst state))
+    (->> (iterate burst state)
+         (take 10000)
          (partition 2 1)
          (map (fn [[{curr-infected :infected} {next-infected :infected}]]
                 (- (count next-infected) (count curr-infected))))
