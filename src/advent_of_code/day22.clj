@@ -45,8 +45,8 @@
            [0 -1] [-1 0]}]
     (get m direction)))
 
-(def reverse-direction (comp turn-right turn-right))
-(def same-direction identity)
+(def turn-around (comp turn-right turn-right))
+(def stay-the-course identity)
 
 (defn current-node-state [{:keys [valid-states current] :as world}]
   (let [clean? (comp not (apply some-fn (vals valid-states)))]
@@ -116,9 +116,9 @@
                                    :flagged :clean})
 
 (def direction-transitions-part2 {:clean    turn-left
-                                  :weakened same-direction
+                                  :weakened stay-the-course
                                   :infected turn-right
-                                  :flagged reverse-direction})
+                                  :flagged  turn-around})
 
 
 (comment
