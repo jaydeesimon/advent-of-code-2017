@@ -31,14 +31,6 @@
                 coord))
          (set))))
 
-(defn init-state [input]
-  {:infected  (init-infected input)
-   :direction [-1 0]
-   :current   (->> (str/split-lines input)
-                   (first)
-                   (count)
-                   (center))})
-
 (defn turn-left [direction]
   (let [m {[-1 0] [0 -1]
            [0 -1] [1 0]
@@ -48,47 +40,113 @@
 
 (defn turn-right [direction]
   (let [m {[-1 0] [0 1]
-           [0 1] [1 0]
-           [1 0] [0 -1]
+           [0 1]  [1 0]
+           [1 0]  [0 -1]
            [0 -1] [-1 0]}]
     (get m direction)))
 
-(defn flip-node [infected node]
-  (if (infected node)
-    (set/difference infected #{node})
-    (set/union infected #{node})))
+(def reverse-direction (comp turn-right turn-right))
+(def same-direction identity)
 
-(defn burst [{:keys [infected direction current] :as state}]
-  (let [turn-fn (if (infected current) turn-right turn-left)
-        new-direction (turn-fn direction)]
-    (-> (assoc state :direction new-direction)
-        (update :infected #(flip-node % current))
-        (update :current #(mapv + % new-direction)))))
+(defn current-node-state [{:keys [valid-states current] :as world}]
+  (let [clean? (comp not (apply some-fn (vals valid-states)))]
+    (some (fn [[state state-fn]]
+            (when (state-fn current)
+              state))
+          (concat [[:clean clean?]]
+                  valid-states))))
+
+(defn set-node-state [current target-state]
+  (fn [valid-states]
+    (->> (map (fn [[state nodes]]
+                (if (= state target-state)
+                  [state (set/union nodes #{current})]
+                  [state (set/difference nodes #{current})]))
+              valid-states)
+         (into {}))))
+
+(defn transition-node-state-fn [node-state-transitions]
+  (fn [world current-node-state]
+    (let [next-node-state (node-state-transitions current-node-state)
+          current (get world :current)]
+      (update world :valid-states (set-node-state current next-node-state)))))
+
+(defn transition-direction-fn [direction-transitions]
+  (fn [world current-node-state]
+    (let [turn-fn (direction-transitions current-node-state)]
+      (update world :direction turn-fn))))
+
+(defn advance-current [world]
+  (update
+    world
+    :current
+    (fn [current]
+      (mapv + current (:direction world)))))
+
+(defn init-world [input]
+  {:valid-states {:infected (init-infected input)
+                  :weakened #{}
+                  :flagged  #{}}
+   :direction    [-1 0]
+   :current      (->> (str/split-lines input)
+                      (first)
+                      (count)
+                      (center))})
+
+(defn burst-fn [node-state-transitions direction-transitions]
+  (let [transition-node-state (transition-node-state-fn node-state-transitions)
+        transition-direction (transition-direction-fn direction-transitions)]
+    (fn [world]
+      (let [current-node-state (current-node-state world)]
+        (-> world
+            (transition-node-state current-node-state)
+            (transition-direction current-node-state)
+            (advance-current))))))
+
+
+(def node-state-transitions-part1 {:infected :clean
+                                   :clean    :infected})
+
+(def direction-transitions-part1 {:infected turn-right
+                                  :clean    turn-left})
+
+(def node-state-transitions-part2 {:clean :weakened
+                                   :weakened :infected
+                                   :infected :flagged
+                                   :flagged :clean})
+
+(def direction-transitions-part2 {:clean    turn-left
+                                  :weakened same-direction
+                                  :infected turn-right
+                                  :flagged reverse-direction})
+
 
 (comment
 
   ;; Part 1
-  (let [state (init-state input)]
-    (->> (iterate burst state)
+  (let [world (init-world input)
+        burst (burst-fn node-state-transitions-part1
+                        direction-transitions-part1)]
+    (->> (iterate burst world)
          (take 10000)
          (partition 2 1)
-         (map (fn [[{curr-infected :infected} {next-infected :infected}]]
+         (map (fn [[{{curr-infected :infected} :valid-states}
+                    {{next-infected :infected} :valid-states}]]
                 (- (count next-infected) (count curr-infected))))
          (filter pos-int?)
          (reduce +)))
 
-
-
-
-
-
-
-
-
-
-
-
-
-
+  ;; Part 2
+  (let [world (init-world input)
+        burst (burst-fn node-state-transitions-part2
+                        direction-transitions-part2)]
+    (->> (iterate burst world)
+         (take 10000000)
+         (partition 2 1)
+         (map (fn [[{{curr-infected :infected} :valid-states}
+                    {{next-infected :infected} :valid-states}]]
+                (- (count next-infected) (count curr-infected))))
+         (filter pos-int?)
+         (reduce +)))
 
   )
