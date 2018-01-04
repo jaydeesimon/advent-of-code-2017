@@ -31,13 +31,6 @@
                 coord))
          (set))))
 
-(defn turn-left [direction]
-  (let [m {[-1 0] [0 -1]
-           [0 -1] [1 0]
-           [1 0]  [0 1]
-           [0 1]  [-1 0]}]
-    (get m direction)))
-
 (defn turn-right [direction]
   (let [m {[-1 0] [0 1]
            [0 1]  [1 0]
@@ -45,6 +38,7 @@
            [0 -1] [-1 0]}]
     (get m direction)))
 
+(def turn-left (comp turn-right turn-right turn-right))
 (def turn-around (comp turn-right turn-right))
 (def stay-the-course identity)
 
