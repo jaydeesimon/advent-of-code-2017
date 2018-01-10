@@ -34,7 +34,7 @@
              (bridges*
                (attach-component bridge component-to-attach)
                (set/difference components #{component-to-attach})))
-              components-to-attach))))
+           components-to-attach))))
 
 (defn bridges [components]
   (->> (bridges* [0] (set components))
