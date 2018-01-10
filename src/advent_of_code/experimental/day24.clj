@@ -54,6 +54,9 @@
   ;; chains. Giving up on this approach but leaving it here
   ;; for reference.
 
+  ;; Update: The actual answer is 1511 so pretty close! Maybe 10 million
+  ;; more iterations!
+
   ;; 1 million iterations = [0 16 16 3 3 50 50 32 32 31 31 46 46 29 29 29 29 17 17 1 1 26 26 13 13 38 38 33 33 19 19 4 4 7 7 33 33 50 50 43 43 45 45 5 5 5 5 27 27 50 50 9 9 48 48 22 22 41] = 1503
 
   ;; 10 million iterations = [0 16 16 3 3 50 50 43 43 45 45 5 5 5 5 27 27 50 50 33 33 7 7 4 4 19 19 33 33 38 38 13 13 26 26 1 1 17 17 29 29 29 29 46 46 31 31 32 32 50 50 9 9 48 48 22 22 41] = 1503
