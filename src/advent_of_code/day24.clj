@@ -43,4 +43,16 @@
 (comment
 
   ;; Part 1
-  (reduce max (map (partial reduce +) (bridges components))))
+  (reduce max (map (partial reduce +) (bridges components)))
+
+  ;; Part 2
+  (->> (bridges components)
+       (sort-by (juxt count (partial reduce +)) (fn [[c1 s1] [c2 s2]]
+                                                  (if (= c1 c2)
+                                                    (> s1 s2)
+                                                    (> c1 c2))))
+       (first)
+       (reduce +))
+
+  )
+
