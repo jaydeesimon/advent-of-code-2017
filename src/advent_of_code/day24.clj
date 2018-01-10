@@ -17,21 +17,23 @@
                      (map #(str/split % #"/"))
                      (map (fn [t] (mapv #(Integer/parseInt %) t)))))
 
-(defn find-candidates [connection components]
-  (filter (fn [[front back]]
-            ((set [front back]) connection))
-          components))
+(defn find-components-with-connection [connection components]
+  (filter #((set %) connection) components))
+
+(defn attach-component [bridge component]
+  (let [[front back] component]
+    (if (= front (last bridge))
+      (concat bridge [front back])
+      (concat bridge [back front]))))
 
 (defn bridges* [bridge components]
-  (let [components-to-attach (find-candidates (last bridge) components)]
+  (let [components-to-attach (find-components-with-connection (last bridge) components)]
     (if (not (seq components-to-attach))
       (concat bridge [\*])
       (map (fn [component-to-attach]
-                (let [new-bridge (if (= (last bridge) (first component-to-attach))
-                                   (concat bridge component-to-attach)
-                                   (concat bridge (reverse component-to-attach)))
-                      new-components (set/difference components #{component-to-attach})]
-                  (bridges* new-bridge new-components)))
+             (bridges*
+               (attach-component bridge component-to-attach)
+               (set/difference components #{component-to-attach})))
               components-to-attach))))
 
 (defn bridges [components]
