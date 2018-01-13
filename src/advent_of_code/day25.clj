@@ -1,83 +1,80 @@
 (ns advent-of-code.day25
   (:require [clojure.set :as set]))
 
-(defn transition-state [state]
-  (condp = (:state state)
-    :a (if (not ((:ones state) (:current state)))
-         (-> state
-             (update :ones (fn [ones]
-                             (set/union ones #{(:current state)})))
-             (update :current inc)
+(defn set-one [position ones]
+  (fn [ones]
+    (set/union ones #{position})))
+
+(defn set-zero [position ones]
+  (fn [ones]
+    (set/difference ones #{position})))
+
+(defn transition-state [{:keys [state position ones] :as world}]
+  (condp = state
+    :a (if (not (ones position))
+         (-> world
+             (update :ones (set-one position ones))
+             (update :position inc)
              (assoc :state :b))
-         (-> state
-             (update :ones (fn [ones]
-                             (set/difference ones #{(:current state)})))
-             (update :current dec)
+         (-> world
+             (update :ones (set-zero position ones))
+             (update :position dec)
              (assoc :state :c)))
-    :b (if (not ((:ones state) (:current state)))
-         (-> state
-             (update :ones (fn [ones]
-                             (set/union ones #{(:current state)})))
-             (update :current dec)
+    :b (if (not (ones position))
+         (-> world
+             (update :ones (set-one position ones))
+             (update :position dec)
              (assoc :state :a))
-         (-> state
-             (update :ones (fn [ones]
-                             (set/union ones #{(:current state)})))
-             (update :current inc)
+         (-> world
+             (update :ones (set-one position ones))
+             (update :position inc)
              (assoc :state :d)))
-    :c (if (not ((:ones state) (:current state)))
-         (-> state
-             (update :ones (fn [ones]
-                             (set/difference ones #{(:current state)})))
-             (update :current dec)
+    :c (if (not (ones position))
+         (-> world
+             (update :ones (set-zero position ones))
+             (update :position dec)
              (assoc :state :b))
-         (-> state
-             (update :ones (fn [ones]
-                             (set/difference ones #{(:current state)})))
-             (update :current dec)
+         (-> world
+             (update :ones (set-zero position ones))
+             (update :position dec)
              (assoc :state :e)))
-    :d (if (not ((:ones state) (:current state)))
-         (-> state
-             (update :ones (fn [ones]
-                             (set/union ones #{(:current state)})))
-             (update :current inc)
+    :d (if (not (ones position))
+         (-> world
+             (update :ones (set-one position ones))
+             (update :position inc)
              (assoc :state :a))
-         (-> state
-             (update :ones (fn [ones]
-                             (set/difference ones #{(:current state)})))
-             (update :current inc)
+         (-> world
+             (update :ones (set-zero position ones))
+             (update :position inc)
              (assoc :state :b)))
-    :e (if (not ((:ones state) (:current state)))
-         (-> state
-             (update :ones (fn [ones]
-                             (set/union ones #{(:current state)})))
-             (update :current dec)
+    :e (if (not (ones position))
+         (-> world
+             (update :ones (set-one position ones))
+             (update :position dec)
              (assoc :state :f))
-         (-> state
-             (update :ones (fn [ones]
-                             (set/union ones #{(:current state)})))
-             (update :current dec)
+         (-> world
+             (update :ones (set-one position ones))
+             (update :position dec)
              (assoc :state :c)))
-    :f (if (not ((:ones state) (:current state)))
-         (-> state
-             (update :ones (fn [ones]
-                             (set/union ones #{(:current state)})))
-             (update :current inc)
+    :f (if (not (ones position))
+         (-> world
+             (update :ones (set-one position ones))
+             (update :position inc)
              (assoc :state :d))
-         (-> state
-             (update :ones (fn [ones]
-                             (set/union ones #{(:current state)})))
-             (update :current inc)
-             (assoc :state :a)))))
+         (-> world
+             (update :ones (set-one position ones))
+             (update :position inc)
+             (assoc :state :a)))
+    (throw (ex-info "" {:unknown-state state}))))
 
 (comment
 
 
   ;; Part 1
-  (let [initial-state {:state :a
-                       :current 0
-                       :ones #{}}]
-    (->> initial-state
+  (let [initial-world {:state    :a
+                       :position 0
+                       :ones     #{}}]
+    (->> initial-world
          (iterate transition-state)
          (take (inc 12481997))
          (last)
